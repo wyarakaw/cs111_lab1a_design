@@ -43,9 +43,37 @@ command_indented_print (int indent, command_t c)
     }
     
     if (c->input)
-        printf ("<%s", c->input);
+        switch (c->input_type){
+            case NONE_INPUT_REDIRECT:
+                break;
+            case REGULAR_INPUT_REDIRECT:
+                printf("<%s", c->input);
+                break;
+            case AMPERSAND_INPUT_REDIRECT:
+                printf("<&%s", c->input);
+                break;
+            case RW_INPUT_REDIRECT:
+                printf("<>%s", c->input);
+                break;
+        }
+    
     if (c->output)
-        printf (">%s", c->output);
+        switch (c->output_type){
+            case NONE_OUTPUT_REDIRECT:
+                break;
+            case REGULAR_OUTPUT_REDIRECT:
+                printf(">%s", c->output);
+                break;
+            case APPEND_OUTPUT_REDIRECT:
+                printf(">>%s", c->output);
+                break;
+            case AMPERSAND_OUTPUT_REDIRECT:
+                printf(">&%s", c->output);
+                break;
+            case PIPE_OUTPUT_REDIRECT:
+                printf(">|%s", c->output);
+                break;
+        }
 }
 
 void

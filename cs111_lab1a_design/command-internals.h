@@ -2,20 +2,39 @@
 
 enum command_type
 {
-    AND_COMMAND,         // A && B
-    SEQUENCE_COMMAND,    // A ; B
-    OR_COMMAND,          // A || B
-    PIPE_COMMAND,        // A | B
-    SIMPLE_COMMAND,      // a simple command
-    SUBSHELL_COMMAND,    // ( A )
+    AND_COMMAND,            // A && B
+    SEQUENCE_COMMAND,       // A ; B
+    OR_COMMAND,             // A || B
+    PIPE_COMMAND,           // A | B
+    SIMPLE_COMMAND,         // a simple command
+    SUBSHELL_COMMAND,       // ( A )
     SUBSHELL_OPEN,
-    SUBSHELL_CLOSED,
+    SUBSHELL_CLOSED
+};
+
+enum input_redirect_type
+{
+    NONE_INPUT_REDIRECT,
+    REGULAR_INPUT_REDIRECT,
+    AMPERSAND_INPUT_REDIRECT,       // A <& B
+    RW_INPUT_REDIRECT                // A <> B
+};
+
+enum output_redirect_type
+{
+    NONE_OUTPUT_REDIRECT,
+    REGULAR_OUTPUT_REDIRECT,
+    APPEND_OUTPUT_REDIRECT,         // A >> B
+    AMPERSAND_OUTPUT_REDIRECT,      // A >& B
+    PIPE_OUTPUT_REDIRECT            // A >| B
 };
 
 // Data associated with a command.
 struct command
 {
     enum command_type type;
+    enum input_redirect_type input_type;
+    enum output_redirect_type output_type;
     
     // Exit status, or -1 if not known (e.g., because it has not exited yet).
     int status;
@@ -25,6 +44,7 @@ struct command
     char *output;
     
     int tree_number;
+    
     
     union
     {

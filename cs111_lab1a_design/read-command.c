@@ -81,6 +81,7 @@ char** make_word(char *simple_command, int num_words){
     int i = 0;
     
     //traversing through simple_command
+    //1A DESIGN
     while (simple_command[i] != '\0' && simple_command[i] != '<' && simple_command[i] != '>'){
         if (simple_command[i] == ' '){
             
@@ -398,6 +399,22 @@ command_t make_command_tree(char *complete_command){
             //get the filename
             int k = buff_pos+1;
             int filename_startpos = k;
+            
+            //////////////////
+            if (complete_command[filename_startpos] == '&'){
+                k = k+1;
+                filename_startpos = k;
+                getTop(command_stack)->cmd->input_type = AMPERSAND_INPUT_REDIRECT;
+            } else if (complete_command[filename_startpos] == '>'){
+                k = k+1;
+                filename_startpos = k;
+                getTop(command_stack)->cmd->input_type = RW_INPUT_REDIRECT;
+            } else {
+                getTop(command_stack)->cmd->input_type = REGULAR_INPUT_REDIRECT;
+            }
+
+            //////////////////
+            
             while (complete_command[k] != '\0' && complete_command[k] != '>' && isOperator(complete_command[k]) != true && complete_command[k]!= ')') {
                 k++;
             }
@@ -423,6 +440,25 @@ command_t make_command_tree(char *complete_command){
             
             int k = buff_pos+1;
             int filename_startpos = k;
+            
+            //////////////////
+            if (complete_command[filename_startpos] == '&'){
+                k = k+1;
+                filename_startpos = k;
+                getTop(command_stack)->cmd->output_type = AMPERSAND_OUTPUT_REDIRECT;
+            } else if (complete_command[filename_startpos] == '>'){
+                k = k+1;
+                filename_startpos = k;
+                getTop(command_stack)->cmd->output_type = APPEND_OUTPUT_REDIRECT;
+            } else if (complete_command[filename_startpos] == '|'){
+                k = k+1;
+                filename_startpos = k;
+                getTop(command_stack)->cmd->output_type = PIPE_OUTPUT_REDIRECT;
+            } else {
+                getTop(command_stack)->cmd->output_type = REGULAR_OUTPUT_REDIRECT;
+            }
+            ////////////////
+            
             while (complete_command[k] != '\0' && isOperator(complete_command[k]) != true && complete_command[k]!= ')') {
                 k++;
             }
@@ -730,7 +766,19 @@ void checkForConsecutiveTokens(char* complete_command) {
         if ( isTokenChar(complete_command[pos]) ) {
             switch (complete_command[pos]) {
                     
-                case '<': case '>': case ';':
+                case '<':
+                    if ( complete_command[pos+1] == '<' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' || complete_command[pos+1] == '|') {
+                        fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                        exit(1);
+                    }
+                    break;
+                case '>':
+                    if ( complete_command[pos+1] == '<' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
+                        fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                        exit(1);
+                    }
+                    break;
+                case ';':
                     if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
                         fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
                         exit(1);
