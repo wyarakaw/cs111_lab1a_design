@@ -817,25 +817,59 @@ void checkForConsecutiveTokens(char* complete_command) {
                     }
                     break;
                 case '&':
-                    pos++;
-                    if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
+                    //check if we had '<&' or '>&'
+                    if ((pos-1)>=0 && (complete_command[pos-1] == '<' ||
+                                       complete_command[pos-1] == '>')){
+                        if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
+                            fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                            exit(1);
+                        }
+                    //if we don't have <&' or '>&', then we need to check that the third character
+                    //is not a token
+                    } else if ( complete_command[pos+2] == '<' || complete_command[pos+2] == '>' || complete_command[pos+2] == '|' || complete_command[pos+2] == '&' || complete_command[pos+2] == ';' || complete_command[pos+2] == ')' ) {
                         fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
                         exit(1);
                     }
                     break;
                 case '|':
-                    if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
-                        fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                    
+                    //check if we're ending with a token
+                    if (complete_command[pos+2] == '\0'){
+                        fprintf(stderr, "Ending command with token.");
                         exit(1);
                     }
                     
-                    if ( complete_command[pos+1] == '|' ) {
-                        pos++;
+                    //check if we had '>|'
+                    //if so, check the character after '|'
+                    if ((pos-1)>=0 && complete_command[pos-1] == '>'){
+                        if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
+                            fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                            exit(1);
+                        }
+                    //check if we had '||'
+                    } else if ( complete_command[pos+1] == '|' ) {
+                        if (complete_command[pos+2] == '\0'){
+                            fprintf(stderr, "Ending command with token.");
+                            exit(1);
+                        }
+                        
+                        if ( complete_command[pos+2] == '<' || complete_command[pos+2] == '>' || complete_command[pos+2] == '|' || complete_command[pos+2] == '&' || complete_command[pos+2] == ';' || complete_command[pos+2] == ')' ) {
+                            fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                            exit(1);
+                        }
+                    //if we reach here, we have a pipe command
+                    } else {
+                        if (complete_command[pos+1] == '\0'){
+                            fprintf(stderr, "Ending command with token.");
+                            exit(1);
+                        }
+                        
                         if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
                             fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
                             exit(1);
                         }
                     }
+                    
                     break;
                 case '(':
                     if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' ) {
@@ -873,6 +907,7 @@ void checkForConsecutiveTokens(char* complete_command) {
                 }
             }
             
+            two_consecutive = false;
         }
         
     }
