@@ -9,8 +9,11 @@
 #include <getopt.h>
 #include <errno.h>
 #include <string.h>
+
 /* FIXME: You may need to add #include directives, macro definitions,
  static function definitions, etc.  */
+
+int NO_CLOBBER_FLAG = 0;
 
 bool isValidChar(char character){
     if (isalpha(character) || isdigit(character) || character == '!' ||
@@ -199,6 +202,7 @@ command_t createCommand(enum command_type new_cmd, char *command_string) {
 
 commandNode_t createNode(enum command_type new_cmd){
     commandNode_t x = (commandNode_t) checked_malloc(sizeof(*x));
+    x->cmd->NO_CLOBBER = NO_CLOBBER_FLAG;
     x->next = NULL;
     x->prev = NULL;
     x->tree_number = 0;
@@ -208,6 +212,7 @@ commandNode_t createNode(enum command_type new_cmd){
 commandNode_t createNodeFromCommand(command_t new_command){
     commandNode_t x = (commandNode_t) checked_malloc(sizeof(*x));
     x->cmd = new_command;
+    x->cmd->NO_CLOBBER = NO_CLOBBER_FLAG;
     x->next = NULL;
     x->prev = NULL;
     x->tree_number = 0;
@@ -1080,12 +1085,21 @@ make_command_stream (int (*get_next_byte) (void *),
                      printf("\n");
                      */
                     
+                    //check to see if buffer_no_whitespaces contains "set -C"
+                    char *flag_set = "set -C";
+                    char *flag_unset = "set +C";
+                    if (strcmp(buffer_no_whitespaces, flag_set) == 0){
+                        NO_CLOBBER_FLAG = 1;
+                    } else if (strcmp(buffer_no_whitespaces, flag_unset) == 0){
+                        NO_CLOBBER_FLAG = 0;
+                    }
+                    
+                    //printf("NO_CLOBBER_FLAG = %d\n", NO_CLOBBER_FLAG);
+                    
                     commandNode_t root = createNodeFromCommand(make_command_tree(buffer_no_whitespaces));
                     
                     
                     root->tree_number=tree_number;
-                    
-                    
                     
                     //printf("adding command node to stream: %s\n", root->cmd->u.word[0]);
                     
@@ -1239,6 +1253,14 @@ make_command_stream (int (*get_next_byte) (void *),
     
     //make sure buffer_no_whitespace is not empty
     if (buffer_no_whitespaces[0] != '\0') {
+        char *flag_set = "set -C";
+        char *flag_unset = "set +C";
+        if (strcmp(buffer_no_whitespaces, flag_set) == 0){
+            NO_CLOBBER_FLAG = 1;
+        } else if (strcmp(buffer_no_whitespaces, flag_unset) == 0){
+            NO_CLOBBER_FLAG = 0;
+        }
+        
         commandNode_t root = createNodeFromCommand(make_command_tree(buffer_no_whitespaces));
         
         root->tree_number=tree_number;

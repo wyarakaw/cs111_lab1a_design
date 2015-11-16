@@ -17,7 +17,7 @@ enum input_redirect_type
     NONE_INPUT_REDIRECT,
     REGULAR_INPUT_REDIRECT,
     AMPERSAND_INPUT_REDIRECT,       // A <& B
-    RW_INPUT_REDIRECT                // A <> B
+    RW_INPUT_REDIRECT               // A <> B
 };
 
 enum output_redirect_type
@@ -38,6 +38,9 @@ struct command
     
     // Exit status, or -1 if not known (e.g., because it has not exited yet).
     int status;
+    
+    // 0 if -C option was not declared, 1 if -C option was declared
+    int NO_CLOBBER;
     
     // I/O redirections, or 0 if none.
     char *input;
