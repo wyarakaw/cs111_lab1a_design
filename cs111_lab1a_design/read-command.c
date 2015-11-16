@@ -731,35 +731,53 @@ void eatWhiteSpaces(char *buffer, int bufferSize, char *newArray){
     return;
 }
 
-//make sure the '&' character comes in pairs
+/*
+make sure the '&' character comes in pairs
+Lab1A Design:
+    We check to make sure & comes in pairs, unless we have '<&' or '>&'
+*/
 void checkAndSyntax(char* complete_command) {
     
     int pos=0;
+    bool hit_first_amp = false;
+
     while (complete_command[pos] != '\0') {
         
-        //check for valid syntax
-        //make sure & comes in pairs
-        
-        if (complete_command[pos] == '&') {
-            pos++;
-            if (complete_command[pos] != '&') {
+        //check if we hit the first ampersand
+        if (complete_command[pos] == '&' && !hit_first_amp) {
+            hit_first_amp = true;
+            
+            //case where we would have '<&' or '>&'
+            if ((pos-1) >= 0 && (complete_command[pos-1] == '<' || complete_command[pos-1] == '>')) {
+                continue;
+            }
+            
+            if (complete_command[pos+1] != '&'){
                 fprintf(stderr, "Invalid syntax: checkAndSyntax!");
                 exit(1);
             }
+        //if we already hit the first ampersand, just set hit_first_amp to false
+        //we already checked for invalid syntax above, so no need to do it here
+        } else if (complete_command[pos] == '&' && hit_first_amp){
+            hit_first_amp = false;
         }
+        
         pos++;
         
     }
-    
 }
 
-//there can be no consecutive token characters
-//the exceptions: a '&' character must be followed immediately by another '&'
-//                a '|' character may be followed by a '|'
-//                tokens may be followed by an open paren '('
+/*
+there can be no consecutive token characters
+the exceptions: a '&' character must be followed immediately by another '&'
+                a '|' character may be followed by a '|'
+                tokens may be followed by an open paren '('
+                lab1a design parameters
+*/
 void checkForConsecutiveTokens(char* complete_command) {
     
     int pos=0;
+    bool two_consecutive = false;
     while(complete_command[pos] != '\0') {
         
         //there can be no consecutive token characters
@@ -771,12 +789,21 @@ void checkForConsecutiveTokens(char* complete_command) {
                         fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
                         exit(1);
                     }
+                    
+                    if ( complete_command[pos+1] == '&' || complete_command[pos+1] == '>'){
+                        two_consecutive = true;
+                    }
                     break;
                 case '>':
                     if ( complete_command[pos+1] == '<' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
                         fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
                         exit(1);
                     }
+                    
+                    if ( complete_command[pos+1] == '&' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|'){
+                        two_consecutive = true;
+                    }
+                    
                     break;
                 case ';':
                     if ( complete_command[pos+1] == '<' || complete_command[pos+1] == '>' || complete_command[pos+1] == '|' || complete_command[pos+1] == '&' || complete_command[pos+1] == ';' || complete_command[pos+1] == ')' ) {
@@ -815,7 +842,34 @@ void checkForConsecutiveTokens(char* complete_command) {
                     break;
             }
         }
+        
         pos++;
+        
+        //here we want to check that we don't have more than two consecutive tokens
+        if (two_consecutive){
+            
+            /*
+            - Because we did pos++ before this if statement, we use i = pos+1
+            - Now i points to where the third consecutive token could potentially be
+            - check if there is a third consecutive token, and if so, return an error
+                If there is a white space, go to the next character
+                If it is a regular character, we break out of the loop
+            */
+            int i = pos+1;
+            
+            while (identify_char_type(complete_command[i]) != REGULAR_CHAR && complete_command[i] != '\0'){
+                if (complete_command[i] == ' '){
+                    i++;
+                }
+                
+                if (isTokenChar(complete_command[i])){
+                    fprintf(stderr, "Invalid syntax : checkForConsecutiveTokens!");
+                    exit(1);
+                }
+            }
+            
+        }
+        
     }
 }
 
