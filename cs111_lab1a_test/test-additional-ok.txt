@@ -1,0 +1,21 @@
+cat <& foo >& foo2
+
+cat >> hello    there
+
+set -C
+
+echo <& foo.txt | tr a-z A-Z | echo sort failed!
+
+d -f b<c > d 
+
+cat <> bar.txt | a | sort -u > foo2.txt
+
+set +C
+
+grep -x | b <& exec.txt
+
+a&&b||
+  c &&
+d | g<&h
+
+a<>b>|c<d<>e>|f|g<>h>&i
